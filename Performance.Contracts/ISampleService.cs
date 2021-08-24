@@ -1,14 +1,12 @@
-﻿using ProtoBuf.Grpc;
-using ProtoBuf.Grpc.Configuration;
-using System;
+﻿using ProtoBuf.Grpc.Configuration;
 using System.Threading.Tasks;
 
 namespace Performance.Contracts
 {
-    [Service]
+    [Service("sample.v1")]
     public interface ISampleService
     {
-        [Operation]
+        [Operation("getsample")]
         ValueTask<Sample> GetSampleAsync(Identity id);
     }
 }
