@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "gRPC.Console": {
+      "commandName": "Project"
+    }
+  }
+}

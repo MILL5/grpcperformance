@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "gRPC.Benchmark": {
+      "commandName": "Project"
+    }
+  }
+}

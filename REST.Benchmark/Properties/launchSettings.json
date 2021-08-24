@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "REST.Benchmark": {
+      "commandName": "Project"
+    }
+  }
+}
