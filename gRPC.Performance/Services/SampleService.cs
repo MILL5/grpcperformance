@@ -7,7 +7,7 @@ namespace gRPC.Performance
 {
     public class SampleService : ISampleService
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random _random = new();
         
         private static int GetRandomInt(int maxValue = int.MaxValue)
         {
@@ -29,10 +29,26 @@ namespace gRPC.Performance
 
         private static Sample GetSample()
         {
-            return new Sample { ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
-                                SampleType = GetRandomInt(5),
-                                Values = new [] { GetSampleData() }
-                               };
+            int random = GetRandomInt(100);
+
+            if (random > 50)
+            {
+                return new Sample
+                {
+                    ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
+                    SampleType = GetRandomInt(5),
+                    Values = new[] { GetSampleData() }
+                };
+            }
+            else
+            {
+                return new Sample
+                {
+                    ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
+                    SampleType = GetRandomInt(5),
+                    Values = new[] { GetSampleData(), GetSampleData() }
+                };
+            }
         }
 
         public async ValueTask<Sample> GetSampleAsync(Identity id)

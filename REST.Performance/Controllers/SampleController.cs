@@ -11,7 +11,7 @@ namespace REST.Performance.Controllers
     [ApiController]
     public class SampleController : ControllerBase
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random _random = new();
 
         private static int GetRandomInt(int maxValue = int.MaxValue)
         {
@@ -33,12 +33,26 @@ namespace REST.Performance.Controllers
 
         private static Sample GetSample()
         {
-            return new Sample
+            int random = GetRandomInt(100);
+
+            if (random > 50)
             {
-                ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
-                SampleType = GetRandomInt(5),
-                Values = new[] { GetSampleData() }
-            };
+                return new Sample
+                {
+                    ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
+                    SampleType = GetRandomInt(5),
+                    Values = new[] { GetSampleData() }
+                };
+            }
+            else
+            {
+                return new Sample
+                {
+                    ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
+                    SampleType = GetRandomInt(5),
+                    Values = new[] { GetSampleData(), GetSampleData() }
+                };
+            }
         }
 
         [HttpGet("{catalog}/{id}")]
