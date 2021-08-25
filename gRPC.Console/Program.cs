@@ -1,6 +1,8 @@
 ﻿using gRPC.Performance.Client;
 using Performance.Contracts;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace gRPC
@@ -13,20 +15,27 @@ namespace gRPC
             Console.ReadLine();
 
             var client = new SampleClient();
-            
+
+            var ids = new List<Identity>();
+
             for (int i = 0; i < 100; i++)
             {
                 var id = new Identity();
-                var sample = await client.GetSampleAsync(id);
-                Console.Write($"Type:{sample.SampleType}");
+                ids.Add(id);
+            }
 
-                foreach (var v in sample.Values)
+            var samples = await client.GetSamplesAsync(ids.ToArray());
+            foreach (var s in samples)
+            {
+                Console.Write($"Type:{s.SampleType}");
+
+                foreach (var v in s.Values)
                 {
                     Console.Write($",Value:{v.Value},Threshold:{v.Threshold}");
                 }
-
-                Console.WriteLine();
             }
+
+            Console.WriteLine();
 
             Console.ReadLine();
         }

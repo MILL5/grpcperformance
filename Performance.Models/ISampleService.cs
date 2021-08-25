@@ -2,10 +2,10 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Performance.Contracts
+namespace Performance.Models
 {
     public interface ISampleService
     {
-        ValueTask<Sample> GetSampleAsync(Identity id);
+        ValueTask<Sample[]> GetSamplesAsync(Identity[] ids);
     }
 }

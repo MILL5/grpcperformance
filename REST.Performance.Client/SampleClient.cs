@@ -1,9 +1,8 @@
-﻿using Performance.Contracts;
-using Performance.Models;
+﻿using Performance.Models;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using static Pineapple.Common.Preconditions;
 
@@ -14,13 +13,25 @@ namespace REST.Performance.Client
         private readonly string _url;
         private readonly HttpClient _client;
 
-        public SampleClient(string url = "https://localhost:5001")
+        public SampleClient(string url = "https://localhost:5001", Version version = null)
         {
             CheckIsNotNullOrWhitespace(nameof(url), url);
             CheckIsWellFormedUri(nameof(url), url);
 
+            var handler = new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip
+            };
+
+            var hc = new HttpClient(handler);
+
+            if (version != null)
+            {
+                hc.DefaultRequestVersion = version;
+            }
+
             _url = url;
-            _client = new HttpClient();
+            _client = hc;
         }
 
         ~SampleClient()
@@ -39,13 +50,15 @@ namespace REST.Performance.Client
             _client.Dispose();
         }
 
-        public async ValueTask<Sample> GetSampleAsync(Identity id)
+        public async ValueTask<Sample[]> GetSamplesAsync(Identity[] ids)
         {
-            CheckIsNotNull(nameof(id), id);
+            CheckIsNotNull(nameof(ids), ids);
 
-            var requestUri = $"{_url}/api/Sample/{id.Catalog}/{id.ID}";
+            var requestUri = $"{_url}/api/v1/Sample";
 
-            return await _client.GetFromJsonAsync<Sample>(requestUri);
+            var response = await _client.PostAsJsonAsync(requestUri, ids);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<Sample[]>();
         }
     }
 }

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\gRPC.Performance.Client\gRPC.Performance.Client.csproj" />
+    <ProjectReference Include="..\gRPC.Performance.Constants\gRPC.Performance.Constants.csproj" />
     <ProjectReference Include="..\Performance.Contracts\Performance.Contracts.csproj" />
   </ItemGroup>
 

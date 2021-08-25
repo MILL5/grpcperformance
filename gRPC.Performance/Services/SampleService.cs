@@ -1,6 +1,7 @@
 ﻿using Performance.Contracts;
 using ProtoBuf.Grpc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace gRPC.Performance
@@ -51,9 +52,16 @@ namespace gRPC.Performance
             }
         }
 
-        public async ValueTask<Sample> GetSampleAsync(Identity id)
+        public async ValueTask<Sample[]> GetSampleAsync(Identity[] ids, CallContext context = default)
         {
-            return await ValueTask.FromResult(GetSample());
+            var samples = new List<Sample>(ids.Length);
+
+            foreach (var id in ids)
+            {
+                samples.Add(GetSample());
+            }
+
+            return await ValueTask.FromResult(samples.ToArray());
         }
     }
 }

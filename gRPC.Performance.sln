@@ -31,7 +31,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{31B803
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contracts", "Contracts", "{8CD0A105-CE29-44D1-AD2F-4A04211D2A6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPC.Proto", "gRPC.Proto\gRPC.Proto.csproj", "{4B55C482-8C1F-45BC-A79F-B3478A060D6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gRPC.Proto", "gRPC.Proto\gRPC.Proto.csproj", "{4B55C482-8C1F-45BC-A79F-B3478A060D6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gRPC.Performance.Constants", "gRPC.Performance.Constants\gRPC.Performance.Constants.csproj", "{DDE136D7-4C44-4E56-9AEF-8ABA4A1ED853}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,10 @@ Global
 		{4B55C482-8C1F-45BC-A79F-B3478A060D6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B55C482-8C1F-45BC-A79F-B3478A060D6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B55C482-8C1F-45BC-A79F-B3478A060D6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDE136D7-4C44-4E56-9AEF-8ABA4A1ED853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDE136D7-4C44-4E56-9AEF-8ABA4A1ED853}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDE136D7-4C44-4E56-9AEF-8ABA4A1ED853}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDE136D7-4C44-4E56-9AEF-8ABA4A1ED853}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

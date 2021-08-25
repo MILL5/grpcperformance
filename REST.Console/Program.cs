@@ -1,8 +1,8 @@
 ﻿using REST.Performance.Client;
-using Performance.Contracts;
 using System;
 using System.Threading.Tasks;
 using Performance.Models;
+using System.Collections.Generic;
 
 namespace REST
 {
@@ -15,19 +15,26 @@ namespace REST
 
             var client = new SampleClient();
 
+            var ids = new List<Identity>();
+
             for (int i = 0; i < 100; i++)
             {
                 var id = new Identity();
-                var sample = await client.GetSampleAsync(id);
-                Console.Write($"Type:{sample.SampleType}");
+                ids.Add(id);
+            }
 
-                foreach (var v in sample.Values)
+            var samples = await client.GetSamplesAsync(ids.ToArray());
+            foreach (var s in samples)
+            {
+                Console.Write($"Type:{s.SampleType}");
+
+                foreach (var v in s.Values)
                 {
                     Console.Write($",Value:{v.Value},Threshold:{v.Threshold}");
                 }
-
-                Console.WriteLine();
             }
+
+            Console.WriteLine();
 
             Console.ReadLine();
         }

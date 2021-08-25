@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Performance.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -9,7 +10,7 @@ namespace REST.Performance.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class SampleController : ControllerBase
+    public class SampleController : ControllerBase, ISampleService
     {
         private static readonly Random _random = new();
 
@@ -55,11 +56,17 @@ namespace REST.Performance.Controllers
             }
         }
 
-        [HttpGet("{catalog}/{id}")]
-        public async ValueTask<Sample> Get(int catalog, long id)
+        [HttpPost]
+        public async ValueTask<Sample[]> GetSamplesAsync(Identity[] ids)
         {
-            var result = await ValueTask.FromResult(GetSample());
-            return result;
+            var samples = new List<Sample>(ids.Length);
+
+            foreach (var id in ids)
+            {
+                samples.Add(GetSample());
+            }
+
+            return await ValueTask.FromResult(samples.ToArray());
         }
     }
 }
