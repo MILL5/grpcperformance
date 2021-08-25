@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using gRPC.Performance;
 using Performance.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,20 +7,24 @@ namespace gRPC.Benchmark
 {
     public class BenchmarkTest
     {
-        private static readonly REST.Performance.Client.SampleClient restClient;
-        private static readonly Identity[] ids;
+        private REST.Performance.Client.SampleClient restClient;
+        private Identity[] ids;
 
-        static BenchmarkTest()
+        [Params(1, 10, 100, 1000)]
+        public int BatchSize { get; set; }
+
+        [GlobalSetup]
+        public void GlobalSetup()
         {
             restClient = new REST.Performance.Client.SampleClient();
 
             var ids = new List<Identity>();
-            for (int i = 0; i < Constants.BatchSize; i++)
+            for (int i = 0; i < BatchSize; i++)
             {
                 ids.Add(new Identity());
             }
 
-            BenchmarkTest.ids = ids.ToArray();
+            this.ids = ids.ToArray();
         }
 
         [Benchmark]
