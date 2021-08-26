@@ -7,7 +7,8 @@ namespace gRPC.Performance
 {
     public static class Mocks
     {
-        private static readonly Random _random = new();
+        // Consistent seed
+        private static readonly Random _random = new(97);
 
         private static int GetRandomInt(int maxValue = int.MaxValue)
         {
