@@ -1,4 +1,4 @@
-﻿using Performance.Models;
+﻿using Performance;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -59,6 +59,11 @@ namespace REST.Performance.Client
             var response = await _client.PostAsJsonAsync(requestUri, ids);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<Sample[]>();
+        }
+
+        public ValueTask<Sample[]> GetSamplesFromCacheAsync(Identity[] ids)
+        {
+            throw new NotImplementedException();
         }
     }
 }

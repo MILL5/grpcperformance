@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
-namespace Performance.Models
+namespace Performance
 {
     public class Sample
     {
@@ -10,10 +11,13 @@ namespace Performance.Models
             Values = new List<SampleData>();
         }
 
+        [JsonPropertyName("id")]
         public Identity ID { get; set; }
 
+        [JsonPropertyName("st")]
         public int SampleType { get; set; }
 
+        [JsonPropertyName("v")]
         public ICollection<SampleData> Values { get; set; }
     }
 
@@ -34,14 +38,19 @@ namespace Performance.Models
             return HashCode.Combine(Catalog, ID);
         }
 
+        [JsonPropertyName("c")]
         public int Catalog { get; set; }
+        [JsonPropertyName("id")]
         public long ID { get; set; }
     }
 
     public class SampleData
     {
+        [JsonPropertyName("dt")]
         public DataType DataType { get; set; }
+        [JsonPropertyName("v")]
         public decimal Value { get; set; }
+        [JsonPropertyName("t")]
         public decimal Threshold { get; set; }
     }
 

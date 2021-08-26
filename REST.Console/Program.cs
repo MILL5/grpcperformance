@@ -1,7 +1,7 @@
 ﻿using REST.Performance.Client;
 using System;
 using System.Threading.Tasks;
-using Performance.Models;
+using Performance;
 using System.Collections.Generic;
 
 namespace REST

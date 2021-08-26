@@ -33,7 +33,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contracts", "Contracts", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gRPC.Proto", "gRPC.Proto\gRPC.Proto.csproj", "{4B55C482-8C1F-45BC-A79F-B3478A060D6C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{18908939-BF85-4E69-9B8F-40D04420B47C}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Performance.Shared", "Performance.Shared\Performance.Shared.shproj", "{7CC0253C-F50D-42A8-A5ED-21DC6DB5F879}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Performance.Shared\Performance.Shared.projitems*{07409971-cf25-4abd-af67-57b0d18fa834}*SharedItemsImports = 5
+		Performance.Shared\Performance.Shared.projitems*{3f89447e-fcfa-4d3d-a445-ffe2017eb390}*SharedItemsImports = 5
+		Performance.Shared\Performance.Shared.projitems*{7cc0253c-f50d-42a8-a5ed-21dc6db5f879}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

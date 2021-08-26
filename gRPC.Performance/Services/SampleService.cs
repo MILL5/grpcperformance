@@ -1,6 +1,7 @@
-﻿using Performance.Contracts;
+﻿using M5.BloomFilter;
+using Performance;
+using Performance.Cache;
 using ProtoBuf.Grpc;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,48 +9,11 @@ namespace gRPC.Performance
 {
     public class SampleService : ISampleService
     {
-        private static readonly Random _random = new();
-        
-        private static int GetRandomInt(int maxValue = int.MaxValue)
+        private static (IDictionary<Identity, Sample> Cache, IBloomFilter Filter) _instance;
+
+        static SampleService()
         {
-            return _random.Next(0, maxValue);
-        }
-
-        private static SampleData GetSampleData()
-        {
-            int random = GetRandomInt(100);
-
-            decimal value = random * 1000m / 100m;
-            decimal threshold = random * 5m / 100m;
-
-            if (random < 10)
-                return new SampleData { DataType = DataType.Dollar, Threshold = threshold, Value = value };
-
-            return new SampleData { DataType = DataType.Percentage, Threshold = threshold, Value = value };
-        }
-
-        private static Sample GetSample()
-        {
-            int random = GetRandomInt(100);
-
-            if (random > 50)
-            {
-                return new Sample
-                {
-                    ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
-                    SampleType = GetRandomInt(5),
-                    Values = new[] { GetSampleData() }
-                };
-            }
-            else
-            {
-                return new Sample
-                {
-                    ID = new Identity { Catalog = GetRandomInt(), ID = GetRandomInt() },
-                    SampleType = GetRandomInt(5),
-                    Values = new[] { GetSampleData(), GetSampleData() }
-                };
-            }
+            _instance = CacheInstance.GetCache();
         }
 
         public async ValueTask<Sample[]> GetSampleAsync(Identity[] ids, CallContext context = default)
@@ -58,7 +22,22 @@ namespace gRPC.Performance
 
             foreach (var id in ids)
             {
-                samples.Add(GetSample());
+                samples.Add(Mocks.GetSample());
+            }
+
+            return await ValueTask.FromResult(samples.ToArray());
+        }
+
+        public async ValueTask<Sample[]> GetSampleFromCacheAsync(Identity[] ids, CallContext context = default)
+        {
+            var samples = new List<Sample>(ids.Length);
+
+            foreach (var id in ids)
+            {
+                if (_instance.Cache.TryGetValue(id, out var sample))
+                {
+                    samples.Add(sample);
+                }
             }
 
             return await ValueTask.FromResult(samples.ToArray());

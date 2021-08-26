@@ -1,5 +1,5 @@
 ﻿using gRPC.Performance.Client;
-using Performance.Contracts;
+using Performance;
 using System;
 using System.Collections.Generic;
 using System.Linq;

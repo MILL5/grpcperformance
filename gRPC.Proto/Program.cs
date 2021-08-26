@@ -1,4 +1,4 @@
-﻿using Performance.Contracts;
+﻿using Performance;
 using ProtoBuf.Grpc.Reflection;
 using ProtoBuf.Meta;
 using System.Diagnostics;

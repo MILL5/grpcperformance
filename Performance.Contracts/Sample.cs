@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Performance.Contracts
+namespace Performance
 {
-    [ProtoContract]
+    [ProtoContract(Name = "s")]
     public class Sample
     {
         public Sample()
@@ -12,17 +12,17 @@ namespace Performance.Contracts
             Values = new List<SampleData>();
         }
 
-        [ProtoMember(1)]
+        [ProtoMember(1, Name = "id")]
         public Identity ID { get; set; }
 
-        [ProtoMember(2)]
+        [ProtoMember(2, Name = "st")]
         public int SampleType { get; set; }
 
-        [ProtoMember(3)]
+        [ProtoMember(3, Name = "v")]
         public ICollection<SampleData> Values { get; set; }
     }
 
-    [ProtoContract]
+    [ProtoContract(Name = "id")]
     public class Identity
     {
         public override bool Equals(object obj)
@@ -40,35 +40,35 @@ namespace Performance.Contracts
             return HashCode.Combine(Catalog, ID);
         }
 
-        [ProtoMember(1)]
+        [ProtoMember(1, Name = "c")]
         public int Catalog { get; set; }
 
-        [ProtoMember(2)]
+        [ProtoMember(2, Name = "id")]
         public long ID { get; set; }
 
     }
 
-    [ProtoContract]
+    [ProtoContract(Name = "sd")]
     public class SampleData
     {
-        [ProtoMember(1)]
+        [ProtoMember(1, Name = "dt")]
         public DataType DataType { get; set; }
         
-        [ProtoMember(2)]
+        [ProtoMember(2, Name = "v")]
         public decimal Value { get; set; }
         
-        [ProtoMember(3)]
+        [ProtoMember(3, Name = "t")]
         public decimal Threshold { get; set; }
     }
 
-    [ProtoContract]
+    [ProtoContract(Name = "dt")]
     public enum DataType
     {
-        [ProtoEnum]
+        [ProtoEnum(Name = "u")]
         Unknown = 0,
-        [ProtoEnum]
+        [ProtoEnum(Name = "p")]
         Percentage = 1,
-        [ProtoEnum]
+        [ProtoEnum(Name = "d")]
         Dollar = 2
     }
 }

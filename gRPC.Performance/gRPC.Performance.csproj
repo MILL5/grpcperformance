@@ -12,11 +12,14 @@
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.17.3" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.39.0" />
+    <PackageReference Include="M5.BloomFilter" Version="1.0.0" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Performance.Contracts\Performance.Contracts.csproj" />
   </ItemGroup>
+
+  <Import Project="..\Performance.Shared\Performance.Shared.projitems" Label="Shared" />
 
 </Project>

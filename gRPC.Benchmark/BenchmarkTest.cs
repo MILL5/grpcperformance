@@ -1,9 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
 using System.Linq;
-using gRPC.Performance;
-using Performance.Contracts;
+using Performance;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace gRPC.Benchmark
 {
@@ -12,17 +12,32 @@ namespace gRPC.Benchmark
         private Performance.Client.SampleClient grpcClient;
         private Identity[] ids;
         private IEnumerable<Identity[]> parts;
+        private int _batchSize;
 
-        [Params(1, 10, 100, 1000)]
-        public int BatchSize { get; set; }
-
-        public int NumberOfParts
+        [Params(1, 10, 50, 100, 500, 1000, 10000)]
+        public int BatchSize
         {
-            get
+            get { return _batchSize; }
+            set
             {
-                return BatchSize >= 5 ? 5 : 1;
+                if (value <= 1)
+                    NumberOfParts = 1;
+                else if (value <= 10)
+                    NumberOfParts = 2;
+                else if (value <= 50)
+                    NumberOfParts = 2;
+                else if (value <= 100)
+                    NumberOfParts = 3;
+                else if (value <= 500)
+                    NumberOfParts = 4;
+                else
+                    NumberOfParts = 5;
+
+                _batchSize = value;
             }
         }
+
+        public int NumberOfParts { get; set; }
 
         [GlobalSetup]
         public void GlobalSetup()

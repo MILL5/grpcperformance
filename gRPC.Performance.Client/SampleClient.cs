@@ -1,7 +1,7 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
 using Grpc.Net.Compression;
-using Performance.Contracts;
+using Performance;
 using ProtoBuf.Grpc.Client;
 using System;
 using System.Collections.Generic;
