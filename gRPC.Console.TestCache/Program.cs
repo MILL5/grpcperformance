@@ -14,6 +14,7 @@ namespace gRPC
         private const int CatalogSize = 70000000;
         private const int NumOfBatches = 70000;
         private const bool UseBloomFilter = true;
+        private const bool UseMultiplexing = true;
 
         static async Task Main(string[] args)
         {
@@ -55,7 +56,7 @@ namespace gRPC
 
             foreach (var batch in batches)
             {
-                var samples = await client.GetSamplesFromCacheAsync(batch.ToArray(), useBloomFilter: UseBloomFilter);
+                var samples = await client.GetSamplesFromCacheAsync(batch.ToArray(), useBloomFilter: UseBloomFilter, useMultiplexing: UseMultiplexing);
                 found += samples.Length;
 
                 batchCount++;
@@ -74,7 +75,7 @@ namespace gRPC
             
             CheckIsEqualTo(nameof(found), found, CatalogSize / 10);
 
-            Console.WriteLine($"gRPC Cache Test:  Bloom Filter={UseBloomFilter}");
+            Console.WriteLine($"gRPC Cache Test:  Bloom Filter={UseBloomFilter},Multiplexing={UseMultiplexing}");
             Console.WriteLine("===============================================================================");
             Console.WriteLine($"Found {found} out of {CatalogSize} items in {elapsedTime.TotalMinutes} minutes");
             Console.WriteLine();

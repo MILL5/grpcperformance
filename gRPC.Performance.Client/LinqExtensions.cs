@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using static Pineapple.Common.Preconditions;
 
-namespace gRPC.Benchmark
+namespace gRPC.Performance.Client
 {
-    public static class LinqExtensions
+    internal static class LinqExtensions
     {
         public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> list, int parts)
         {
@@ -13,7 +13,7 @@ namespace gRPC.Benchmark
             CheckIsNotLessThanOrEqualTo(nameof(parts), parts, 0);
 
             int count = list.Count();
-            int batchSize = Math.Max(Convert.ToInt32(Math.Floor(count * 1.0 / parts)), 1);
+            int batchSize = Math.Max(Convert.ToInt32(Math.Floor(count * 1.0 / parts)),1);
 
             var batches = new HashSet<IEnumerable<T>>(parts);
             var currentBatch = new List<T>(batchSize);

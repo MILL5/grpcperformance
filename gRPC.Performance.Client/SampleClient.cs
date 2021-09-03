@@ -2,13 +2,13 @@
 using Grpc.Net.Client;
 using Grpc.Net.Compression;
 using M5.BloomFilter;
-using M5.BloomFilter.Serialization;
 using Performance;
-using ProtoBuf.Grpc;
+using Pineapple.Threading;
 using ProtoBuf.Grpc.Client;
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static Pineapple.Common.Preconditions;
@@ -83,7 +83,9 @@ namespace gRPC.Performance.Client
             return result;
         }
 
-        public async ValueTask<Sample[]> GetSamplesFromCacheAsync(Identity[] ids, bool useBloomFilter = false)
+        public async ValueTask<Sample[]> GetSamplesFromCacheAsync(Identity[] ids,
+                                        bool useBloomFilter = true,
+                                        bool useMultiplexing = true)
         {
             CheckIsNotNull(nameof(ids), ids);
 
@@ -105,8 +107,36 @@ namespace gRPC.Performance.Client
             }
 
             var idsToSend = filteredIds == null ? ids : filteredIds.ToArray();
+            Sample[] result;
 
-            var result = await _client.GetSampleFromCacheAsync(idsToSend, _callOptions);
+            if (useMultiplexing)
+            {
+                var parallelism = new Parallelism();
+                int multiPlexingSize = parallelism.MaxDegreeOfParallelism;
+
+                var splitThis = new List<Identity>(ids.Length);
+                splitThis.AddRange(idsToSend);
+                var batches = splitThis.Split(multiPlexingSize);
+
+                var results = new List<Sample>(ids.Length);
+
+                Parallel.ForEach(batches, parallelism.Options, (p) =>
+                {
+                    var idsToSend = p.ToArray();
+                    var s = _client.GetSampleFromCacheAsync(idsToSend, _callOptions).Result;
+
+                    lock (results)
+                    {
+                        results.AddRange(s);
+                    }
+                });
+
+                result = results.ToArray();
+            }
+            else
+            {
+                result = await _client.GetSampleFromCacheAsync(idsToSend, _callOptions);
+            }
 
             return result;
         }

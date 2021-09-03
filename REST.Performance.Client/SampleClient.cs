@@ -1,7 +1,9 @@
 ﻿using M5.BloomFilter;
 using Performance;
+using Pineapple.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -92,9 +94,11 @@ namespace REST.Performance.Client
             return await response.Content.ReadFromJsonAsync<Sample[]>();
         }
 
-        public async ValueTask<Sample[]> GetSamplesFromCacheAsync(Identity[] ids, bool useBloomFilter = false)
+        public async ValueTask<Sample[]> GetSamplesFromCacheAsync(Identity[] ids, bool useBloomFilter = true, bool useMultiplexing = true)
         {
             CheckIsNotNull(nameof(ids), ids);
+
+            Sample[] result;
 
             List<Identity> filteredIds = null;
             var bf = _bloomFilter?.Value;
@@ -117,9 +121,41 @@ namespace REST.Performance.Client
 
             var requestUri = $"{_url}/api/v1/Sample/fromcache";
 
-            var response = await _client.PostAsJsonAsync(requestUri, idsToSend);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Sample[]>();
+            if (useMultiplexing)
+            {
+                var parallelism = new Parallelism();
+                int multiPlexingSize = parallelism.MaxDegreeOfParallelism;
+
+                var splitThis = new List<Identity>(ids.Length);
+                splitThis.AddRange(idsToSend);
+                var batches = splitThis.Split(multiPlexingSize);
+
+                var results = new List<Sample>(ids.Length);
+
+                Parallel.ForEach(batches, parallelism.Options, (p) =>
+                {
+                    var idsToSend = p.ToArray();
+
+                    var response = _client.PostAsJsonAsync(requestUri, idsToSend).Result;
+                    response.EnsureSuccessStatusCode();
+                    var s = response.Content.ReadFromJsonAsync<Sample[]>().Result;
+
+                    lock (results)
+                    {
+                        results.AddRange(s);
+                    }
+                });
+
+                result = results.ToArray();
+            }
+            else
+            {
+                var response = await _client.PostAsJsonAsync(requestUri, idsToSend);
+                response.EnsureSuccessStatusCode();
+                result = await response.Content.ReadFromJsonAsync<Sample[]>();
+            }
+
+            return result;
         }
     }
 }
