@@ -119,7 +119,6 @@ namespace gRPC.Performance.Client
 
             if (useBloomFilter && bf != null)
             {
-
                 filteredIds = new List<Identity>();
 
                 foreach (var id in ids)
