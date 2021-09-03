@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Performance</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="M5.BloomFilter" Version="1.0.7" />
+    <PackageReference Include="M5.BloomFilter.Serialization.Json" Version="1.0.7" />
+  </ItemGroup>
 
 </Project>

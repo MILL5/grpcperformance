@@ -1,16 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="M5.BloomFilter" Version="1.0.7" />
     <PackageReference Include="Pineapple" Version="1.0.35" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Performance.Models\Performance.Models.csproj" />
+    <ProjectReference Include="..\gRPC.Performance.Client\gRPC.Performance.Client.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Performance;
 
-namespace gRPC.Performance
+namespace Performance.Shared
 {
     public static class Mocks
     {

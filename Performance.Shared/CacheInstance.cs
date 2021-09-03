@@ -1,14 +1,14 @@
 ﻿using M5.BloomFilter;
 using System.Collections.Generic;
 
-namespace Performance.Cache
+namespace Performance.Shared
 {
     public static class CacheInstance
     {
         // We have 70 million possible entries
         public const int CacheSize = 70000000;
 
-        public static (IDictionary<Identity, Sample> Cache, IBloomFilter Filter) GetCache()
+        public static VersionedCache GetCache()
         {
             var cache = new Dictionary<Identity, Sample>(CacheSize);
 
@@ -30,7 +30,7 @@ namespace Performance.Cache
                 filter.Add(item);
             }
 
-            return (cache, filter);
+            return new VersionedCache(cache, filter);
         }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace REST.Performance
@@ -33,7 +34,12 @@ namespace REST.Performance
                 options.EnableForHttps = true;
             });
 
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(c =>
+            {
+                c.JsonSerializerOptions.Converters.Add(new BitArrayConverter());
+                c.JsonSerializerOptions.Converters.Add(new BloomFilterConverter());
+            });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "REST.Performance", Version = "v1" });

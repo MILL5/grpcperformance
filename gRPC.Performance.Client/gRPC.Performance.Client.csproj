@@ -6,7 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />
-    <PackageReference Include="Pineapple" Version="1.0.34" />
+    <PackageReference Include="M5.BloomFilter" Version="1.0.7" />
+    <PackageReference Include="Pineapple" Version="1.0.35" />
   </ItemGroup>
 
   <ItemGroup>
