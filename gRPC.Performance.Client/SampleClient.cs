@@ -20,7 +20,8 @@ namespace gRPC.Performance.Client
         private readonly GrpcChannel _channel;
         private readonly ISampleService _client;
         private readonly CallOptions _callOptions;
-        private VersionedResponse<ReadOnlyFilter> _bloomFilter;
+        private volatile VersionedResponse<ReadOnlyFilter> _bloomFilter;
+        private volatile bool _isrunning;
 
         public SampleClient(string url = "https://localhost:5001")
         {
@@ -45,6 +46,9 @@ namespace gRPC.Performance.Client
             _client = _channel.CreateGrpcService<ISampleService>();
 
             _bloomFilter = GetBloomFilterAsync().Result;
+
+            _isrunning = true;
+            Task.Run(UpdateBloomFilter).ConfigureAwait(false);
         }
 
         ~SampleClient()
@@ -60,7 +64,28 @@ namespace gRPC.Performance.Client
 
         protected virtual void DisposeInternal()
         {
+            _isrunning = false;
             _channel.Dispose();
+        }
+
+        private async Task UpdateBloomFilter()
+        {
+            const int fiveminutes = 5 * 60 * 1000;
+
+            while (_isrunning)
+            {
+                try
+                {
+                    var version = _bloomFilter.Version;
+
+                    _bloomFilter = GetBloomFilterAsync(version).Result;
+                }
+                catch
+                {
+                }
+
+                await Task.Delay(fiveminutes);
+            }
         }
 
         private async ValueTask<VersionedResponse<ReadOnlyFilter>> GetBloomFilterAsync(global::Performance.VersionInfo versionInfo = null)

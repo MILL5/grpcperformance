@@ -14,11 +14,42 @@ namespace REST.Performance
     [ApiController]
     public class SampleController : ControllerBase, ISampleService
     {
-        private static VersionedCache _instance;
+        // We made this volatile on purpose
+        private static volatile VersionedCache _instance;
+        private static volatile bool _isrunning;
 
         static SampleController()
         {
             _instance = CacheInstance.GetCache();
+
+            _isrunning = true;
+            AppDomain.CurrentDomain.DomainUnload += CurrentDomain_DomainUnload;
+
+            Task.Run(UpdateCache).ConfigureAwait(false);
+        }
+
+        private static void CurrentDomain_DomainUnload(object sender, EventArgs e)
+        {
+            _isrunning = false;
+        }
+
+        // Simulate updating the cache every 5 minutes
+        private static async Task UpdateCache()
+        {
+            const int fiveminutes = 5 * 60 * 1000;
+
+            while (_isrunning)
+            {
+                try
+                {
+                    _instance = CacheInstance.GetCache();
+                }
+                catch
+                {
+                }
+
+                await Task.Delay(fiveminutes);
+            }
         }
 
         [HttpGet("bloomfilter")]
@@ -28,14 +59,16 @@ namespace REST.Performance
 
             VersionedResponse<ReadOnlyFilter> versionedResponse;
 
+            var currentCache = _instance;
+
             if (versionInfo == null)
             {
                 // Client asking for the first time
                 versionedResponse = new VersionedResponse<ReadOnlyFilter>
                 {
                     Update = VersionUpdate.Initial,
-                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = _instance.Version },
-                    Value = _instance.Filter.ToImmutable()
+                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = currentCache.Version },
+                    Value = currentCache.Filter.ToImmutable()
                 };
             }
             else if (versionInfo.ServerId != VersionedCache.ServerId)
@@ -44,18 +77,18 @@ namespace REST.Performance
                 versionedResponse = new VersionedResponse<ReadOnlyFilter>
                 {
                     Update = VersionUpdate.ServerMigration,
-                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = _instance.Version },
-                    Value = _instance.Filter.ToImmutable()
+                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = currentCache.Version },
+                    Value = currentCache.Filter.ToImmutable()
                 };
             }
-            else if (versionInfo.Version != _instance.Version)
+            else if (versionInfo.Version != currentCache.Version)
             {
                 // Client has a different version of the cache
                 versionedResponse = new VersionedResponse<ReadOnlyFilter>
                 {
                     Update = VersionUpdate.ServerMigration,
-                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = _instance.Version },
-                    Value = _instance.Filter.ToImmutable()
+                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = currentCache.Version },
+                    Value = currentCache.Filter.ToImmutable()
                 };
             }
             else
@@ -64,7 +97,7 @@ namespace REST.Performance
                 versionedResponse = new VersionedResponse<ReadOnlyFilter>
                 {
                     Update = VersionUpdate.None,
-                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = _instance.Version }
+                    Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = currentCache.Version }
                 };
             }
 

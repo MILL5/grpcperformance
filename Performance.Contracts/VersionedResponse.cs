@@ -26,13 +26,13 @@ namespace Performance
     public enum VersionUpdate
     {
         [ProtoEnum(Name = "n")]
-        None,
+        None = 0,
         [ProtoEnum(Name = "i")]
-        Initial,
+        Initial = 1,
         [ProtoEnum(Name = "vu")]
-        VersionUpdate,
+        VersionUpdate = 2,
         [ProtoEnum(Name = "sm")]
-        ServerMigration
+        ServerMigration = 3
     }
 
     [ProtoContract(Name = "vr")]

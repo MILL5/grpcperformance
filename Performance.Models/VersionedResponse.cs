@@ -24,10 +24,10 @@ namespace Performance
 
     public enum VersionUpdate
     {
-        None,
-        Initial,
-        VersionUpdate,
-        ServerMigration
+        None = 0,
+        Initial = 1,
+        VersionUpdate = 2,
+        ServerMigration = 3
     }
 
     public class VersionedResponse<T> where T: class
