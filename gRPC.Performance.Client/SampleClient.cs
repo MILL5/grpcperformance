@@ -9,9 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static Pineapple.Common.Preconditions;
+using static Pineapple.Common.Cleanup;
 
 namespace gRPC.Performance.Client
 {
@@ -21,12 +23,23 @@ namespace gRPC.Performance.Client
         private readonly ISampleService _client;
         private readonly CallOptions _callOptions;
         private volatile VersionedResponse<ReadOnlyFilter> _bloomFilter;
+        private static readonly Parallelism _parallelism;
+        private static readonly object _instanceLock = new();
+        private static int _instanceCount = 0;
         private volatile bool _isrunning;
+
+        static SampleClient()
+        {
+            _parallelism = new Parallelism();
+            ServicePointManager.DefaultConnectionLimit = Math.Max(ServicePointManager.DefaultConnectionLimit, _parallelism.MaxDegreeOfParallelism);
+        }
 
         public SampleClient(string url = "https://localhost:5001")
         {
             CheckIsNotNullOrWhitespace(nameof(url), url);
             CheckIsWellFormedUri(nameof(url), url);
+
+            EnsureDefaultConnections();
 
             var httpClientHandler = new SocketsHttpHandler
             {
@@ -38,8 +51,10 @@ namespace gRPC.Performance.Client
             var options = new GrpcChannelOptions { HttpHandler = httpClientHandler };
             options.CompressionProviders = new List<ICompressionProvider> { new GzipCompressionProvider(CompressionLevel.Optimal) };
 
-            var headers = new Metadata();
-            headers.Add("grpc-accept-encoding", "gzip");
+            var headers = new Metadata
+            {
+                { "grpc-accept-encoding", "gzip" }
+            };
 
             _callOptions = new CallOptions(headers: headers);
             _channel = GrpcChannel.ForAddress(url, options);
@@ -65,7 +80,35 @@ namespace gRPC.Performance.Client
         protected virtual void DisposeInternal()
         {
             _isrunning = false;
-            _channel.Dispose();
+            SafeMethod(_channel.Dispose);
+
+            SafeMethod(() =>
+            {
+                lock (_instanceLock)
+                {
+                    _instanceCount--;
+                }
+            });
+        }
+
+        private void EnsureDefaultConnections()
+        {
+            //
+            // We grow the default connection limit to (# of Outstanding Clients) * _parallelism.MaxDegreeOfParallelism
+            //
+
+            int limit;
+
+            lock (_instanceLock)
+            {
+                _instanceCount++;
+                limit = Math.Max(ServicePointManager.DefaultConnectionLimit, _parallelism.MaxDegreeOfParallelism * _instanceCount);
+            }
+
+            if (limit > ServicePointManager.DefaultConnectionLimit)
+            {
+                ServicePointManager.DefaultConnectionLimit = limit;
+            }
         }
 
         private async Task UpdateBloomFilter()
@@ -78,7 +121,12 @@ namespace gRPC.Performance.Client
                 {
                     var version = _bloomFilter.Version;
 
-                    _bloomFilter = GetBloomFilterAsync(version).Result;
+                    var bloomFilter = GetBloomFilterAsync(version).Result;
+
+                    if (bloomFilter.Update != VersionUpdate.None)
+                    {
+                        _bloomFilter = bloomFilter;
+                    }
                 }
                 catch
                 {
@@ -135,8 +183,7 @@ namespace gRPC.Performance.Client
 
             if (useMultiplexing)
             {
-                var parallelism = new Parallelism();
-                int multiPlexingSize = parallelism.MaxDegreeOfParallelism;
+                int multiPlexingSize = _parallelism.MaxDegreeOfParallelism;
 
                 var splitThis = new List<Identity>(ids.Length);
                 splitThis.AddRange(idsToSend);
@@ -144,7 +191,7 @@ namespace gRPC.Performance.Client
 
                 var results = new List<Sample>(ids.Length);
 
-                Parallel.ForEach(batches, parallelism.Options, (p) =>
+                var parallelResult = Parallel.ForEach(batches, _parallelism.Options, (p) =>
                 {
                     var idsToSend = p.ToArray();
                     var s = _client.GetSampleFromCacheAsync(idsToSend, _callOptions).Result;
@@ -154,6 +201,9 @@ namespace gRPC.Performance.Client
                         results.AddRange(s);
                     }
                 });
+
+                if (!parallelResult.IsCompleted)
+                    throw new Exception("The entire batch was not successful.");
 
                 result = results.ToArray();
             }

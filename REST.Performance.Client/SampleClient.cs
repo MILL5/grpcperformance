@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using static Pineapple.Common.Preconditions;
+using static Pineapple.Common.Cleanup;
 
 namespace REST.Performance.Client
 {
@@ -19,11 +20,16 @@ namespace REST.Performance.Client
         private readonly string _url;
         private readonly HttpClient _client;
         private static readonly JsonSerializerOptions _jsonSerializerOptions;
+        private static readonly Parallelism _parallelism;
+        private static readonly object _instanceLock = new();
+        private static int _instanceCount = 0;
         private volatile VersionedResponse<ReadOnlyFilter> _bloomFilter;
         private volatile bool _isrunning;
-
+        
         static SampleClient()
         {
+            _parallelism = new Parallelism();
+            ServicePointManager.DefaultConnectionLimit = Math.Max(ServicePointManager.DefaultConnectionLimit, _parallelism.MaxDegreeOfParallelism);
             var jsonSerializerOptions = new JsonSerializerOptions();
             jsonSerializerOptions.Converters.Add(new BitArrayConverter());
             jsonSerializerOptions.Converters.Add(new BloomFilterConverter());
@@ -34,6 +40,8 @@ namespace REST.Performance.Client
         {
             CheckIsNotNullOrWhitespace(nameof(url), url);
             CheckIsWellFormedUri(nameof(url), url);
+
+            EnsureDefaultConnections();
 
             var handler = new SocketsHttpHandler
             {
@@ -51,7 +59,6 @@ namespace REST.Performance.Client
             _client = hc;
             var bloomFilter = GetBloomFilterAsync().Result;
             _bloomFilter = bloomFilter;
-
             _isrunning = true;
             Task.Run(UpdateBloomFilter).ConfigureAwait(false);
         }
@@ -70,7 +77,35 @@ namespace REST.Performance.Client
         protected virtual void DisposeInternal()
         {
             _isrunning = false;
-            _client.Dispose();
+            SafeMethod(_client.Dispose);
+
+            SafeMethod(() =>
+            {
+                lock (_instanceLock)
+                {
+                    _instanceCount--;
+                }
+            });
+        }
+
+        private void EnsureDefaultConnections()
+        {
+            //
+            // We grow the default connection limit to (# of Outstanding Clients) * _parallelism.MaxDegreeOfParallelism
+            //
+
+            int limit;
+
+            lock (_instanceLock)
+            {
+                _instanceCount++;
+                limit = Math.Max(ServicePointManager.DefaultConnectionLimit, _parallelism.MaxDegreeOfParallelism * _instanceCount);
+            }
+
+            if (limit > ServicePointManager.DefaultConnectionLimit)
+            {
+                ServicePointManager.DefaultConnectionLimit = limit;
+            }
         }
 
         private async Task UpdateBloomFilter()
@@ -83,7 +118,12 @@ namespace REST.Performance.Client
                 {
                     var version = _bloomFilter.Version;
 
-                    _bloomFilter = GetBloomFilterAsync(version).Result;
+                    var bloomFilter = GetBloomFilterAsync(version).Result;
+
+                    if (bloomFilter.Update != VersionUpdate.None)
+                    {
+                        _bloomFilter = bloomFilter;
+                    }
                 }
                 catch
                 {
@@ -130,7 +170,6 @@ namespace REST.Performance.Client
 
             if (useBloomFilter && bf != null)
             {
-                
                 filteredIds = new List<Identity>();
 
                 foreach (var id in ids)
@@ -148,8 +187,7 @@ namespace REST.Performance.Client
 
             if (useMultiplexing)
             {
-                var parallelism = new Parallelism();
-                int multiPlexingSize = parallelism.MaxDegreeOfParallelism;
+                int multiPlexingSize = _parallelism.MaxDegreeOfParallelism;
 
                 var splitThis = new List<Identity>(ids.Length);
                 splitThis.AddRange(idsToSend);
@@ -157,7 +195,7 @@ namespace REST.Performance.Client
 
                 var results = new List<Sample>(ids.Length);
 
-                Parallel.ForEach(batches, parallelism.Options, (p) =>
+                var parallelResult = Parallel.ForEach(batches, _parallelism.Options, (p) =>
                 {
                     var idsToSend = p.ToArray();
 
@@ -170,6 +208,9 @@ namespace REST.Performance.Client
                         results.AddRange(s);
                     }
                 });
+
+                if (!parallelResult.IsCompleted)
+                    throw new Exception("The entire batch was not successful.");
 
                 result = results.ToArray();
             }

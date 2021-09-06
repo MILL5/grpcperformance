@@ -123,9 +123,11 @@ namespace REST.Performance
         {
             var samples = new List<Sample>(ids.Length);
 
+            var cache = _instance.Cache;
+
             foreach (var id in ids)
             {
-                if (_instance.Cache.TryGetValue(id, out var sample))
+                if (cache.TryGetValue(id, out var sample))
                 {
                     samples.Add(sample);
                 }

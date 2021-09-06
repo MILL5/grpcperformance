@@ -1,18 +1,19 @@
-﻿using REST.Performance.Client;
+﻿using Performance;
+using REST.Performance.Client;
 using System;
-using System.Threading.Tasks;
-using System.Linq;
-using Performance;
 using System.Collections.Generic;
-using static Pineapple.Common.Preconditions;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using static Pineapple.Common.Preconditions;
 
 namespace REST
 {
     class Program
     {
         private const int CatalogSize = 70000000;
-        private const int NumOfBatches = 70000;
+        private const int BatchSize = 1000;
+        private const int NumOfBatches = CatalogSize / BatchSize;
         private const bool UseBloomFilter = true;
         private const bool UseMultiplexing = true;
 
@@ -41,8 +42,8 @@ namespace REST
             var firstBatchCount = batches.First().Count();
             var lastBatchCount = batches.Last().Count();
 
-            CheckIsEqualTo(nameof(firstBatchCount), firstBatchCount, 1000);
-            CheckIsEqualTo(nameof(lastBatchCount), lastBatchCount, 1000);
+            CheckIsEqualTo(nameof(firstBatchCount), firstBatchCount, BatchSize);
+            CheckIsEqualTo(nameof(lastBatchCount), lastBatchCount, BatchSize);
 
             Console.WriteLine("Created batches!");
 
@@ -75,7 +76,7 @@ namespace REST
             
             CheckIsEqualTo(nameof(found), found, CatalogSize / 10);
 
-            Console.WriteLine($"REST Cache Test:  Bloom Filter={UseBloomFilter},Multiplexing={UseMultiplexing}");
+            Console.WriteLine($"REST Cache Test:  Batch Size={BatchSize},Bloom Filter={UseBloomFilter},Multiplexing={UseMultiplexing}");
             Console.WriteLine("===============================================================================");
             Console.WriteLine($"Found {found} out of {CatalogSize} items in {elapsedTime.TotalMinutes} minutes");
             Console.WriteLine();
