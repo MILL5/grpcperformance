@@ -79,7 +79,7 @@ namespace gRPC.Performance
                 // Client has a different version of the cache
                 versionedResponse = new VersionedResponse<BloomFilter>
                 {
-                    Update = VersionUpdate.ServerMigration,
+                    Update = VersionUpdate.VersionUpdate,
                     Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = currentCache.Version },
                     Value = new BloomFilter(currentCache.Filter)
                 };

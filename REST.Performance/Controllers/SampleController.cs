@@ -86,7 +86,7 @@ namespace REST.Performance
                 // Client has a different version of the cache
                 versionedResponse = new VersionedResponse<ReadOnlyFilter>
                 {
-                    Update = VersionUpdate.ServerMigration,
+                    Update = VersionUpdate.VersionUpdate,
                     Version = new VersionInfo { ServerId = VersionedCache.ServerId, Version = currentCache.Version },
                     Value = currentCache.Filter.ToImmutable()
                 };

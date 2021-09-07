@@ -120,7 +120,8 @@ namespace REST.Performance.Client
 
                     var bloomFilter = GetBloomFilterAsync(version).Result;
 
-                    if (bloomFilter.Update != VersionUpdate.None)
+                    if ((bloomFilter.Update != VersionUpdate.None) &&
+                        (bloomFilter.Value != null))
                     {
                         _bloomFilter = bloomFilter;
                     }

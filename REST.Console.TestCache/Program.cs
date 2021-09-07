@@ -12,7 +12,7 @@ namespace REST
     class Program
     {
         private const int CatalogSize = 70000000;
-        private const int BatchSize = 1000;
+        private const int BatchSize = 1;
         private const int NumOfBatches = CatalogSize / BatchSize;
         private const bool UseBloomFilter = true;
         private const bool UseMultiplexing = true;
